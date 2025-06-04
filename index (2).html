@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Delivery Supermercado</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background: #8B0000;
+    }
+    header {
+  background-image: url('https://foodsafetybrazil.org/wp-content/uploads/2020/08/supermarket-5202138_960_720.jpg'); /* Coloque o caminho da sua imagem */
+  background-size: cover;         /* Faz a imagem cobrir todo o header */
+  background-position: center;    /* Centraliza a imagem */
+  color: white;
+  padding: 15px 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+color: #FFFFFF; /* 👈 aqui você define a cor */
+}
+
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#busca {
+  padding: 6px 10px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+}
+
+#botao-carrinho {
+  background: #ffffff;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: #8B0000;
+  border-radius: 5px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+#badge-carrinho {
+  background: red;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+}
+    #categorias {
+      display: flex;
+      gap: 10px;
+      background: #264653;
+      padding: 10px 20px;
+    }
+    #categorias button {
+      background: #8B0000;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    #categorias button.active,
+    #categorias button:hover {
+      background: #e9c46a;
+      color: #264653;
+    }
+    main {
+      display: flex;
+      padding: 20px;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    #produtos {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(100px,1fr));
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.03);
+    }
+    .card img {
+      max-width: 100%;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      height: 120px;
+      object-fit: contain;
+    }
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 1.1rem;
+      text-align: center;
+      flex-grow: 1;
+    }
+    .card p {
+      margin: 0 0 10px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #8B0000;
+    }
+    .card input[type="number"] {
+      width: 50px;
+      margin-bottom: 10px;
+      font-size: 1rem;
+      padding: 4px;
+    }
+    .card button {
+      background: #8B0000;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card button:hover {
+      background: #8B0000;
+    }
+    /* Carrinho lateral */
+    #carrinho-container {
+      position: fixed;
+      top: 0; right: 0;
+      width: 320px;
+      height: 100vh;
+      background: white;
+      box-shadow: -3px 0 8px rgb(0 0 0 / 0.2);
+      padding: 20px;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      z-index: 200;
+    }
+    #carrinho-container h2 {
+      margin-top: 0;
+      font-size: 1.5rem;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+      position: relative;
+    }
+    /* Botão fechar carrinho */
+    #fechar-carrinho {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      color: #e76f51;
+      line-height: 1;
+      user-select: none;
+    }
+    .item-carrinho {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 8px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+    .item-carrinho > div {
+      flex: 1;
+    }
+    .item-carrinho span {
+      font-weight: bold;
+      color: #264653;
+    }
+    .item-quantidade {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .item-quantidade button {
+      background: #8B0000;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      width: 25px;
+      height: 25px;
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .item-remover {
+      background: #e76f51;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      padding: 5px 9px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    #total {
+      font-weight: bold;
+      font-size: 1.3rem;
+      margin-top: 10px;
+      color: #264653;
+    }
+    #limpar-carrinho {
+      background: #e76f51;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 15px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      font-size: 1rem;
+    }
+    /* Formulário */
+    #form-pedido {
+      margin-top: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #form-pedido input,
+    #form-pedido select {
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+    #form-pedido input:focus,
+    #form-pedido select:focus {
+      border-color: #8B0000;
+    }
+    #troco-container {
+      display: none;
+    }
+    .form-buttons {
+      margin-top: 10px;
+    }
+    .form-buttons button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+      background: #32CD32;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    .form-buttons button:hover {
+      background: #21867a;
+    }
+	  @media (max-width: 600px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  #busca {
+    width: 100%;
+  }
+
+  #categorias {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
+  }
+
+  main {
+    flex-direction: column;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  #produtos {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .card img {
+    height: 100px;
+  }
+
+  .card input[type="number"] {
+    width: 100%;
+  }
+
+  #carrinho-container {
+    width: 80vw;
+    height: 80vh;
+    top: 0;
+    right: 0;
+    border-left: none;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    padding: 16px;
+  }
+
+  .item-carrinho {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .item-quantidade {
+    margin: 5px 0;
+  }
+
+  .form-buttons button {
+    font-size: 1rem;
+  }
+
+  #limpar-carrinho {
+    font-size: 1rem;
+  }
+  #logo {
+  height: 50px;
+  margin-right: 10px;
+}
+
+}
+
+
+  </style>
+</head>
+<body>
+  <header>
+  <img src="logo.png" alt="Logo do Supermercado" id="logo">
+  <h1>Supermercado Coração de Jesus</h1>
+  <div class="header-controls">
+    <input type="text" id="busca" placeholder="Buscar produto..." />
+    <button id="botao-carrinho" title="Ver carrinho">
+      🛒 <span id="badge-carrinho">0</span>
+    </button>
+  </div>
+</header>
+  <nav id="categorias"></nav>
+  <main>
+    <section id="produtos"></section>
+    <aside id="carrinho-container" tabindex="0" aria-label="Carrinho de compras">
+      <h2>
+        Carrinho
+        <button id="fechar-carrinho" aria-label="Fechar carrinho">×</button>
+      </h2>
+      <div id="itens-carrinho"></div>
+      <div id="total">Total: R$ 0.00</div>
+      <button id="limpar-carrinho">Limpar carrinho</button>
+      <form id="form-pedido" onsubmit="return false;">
+        <input type="text" id="nome" placeholder="Seu nome" required />
+        <input type="text" id="endereco" placeholder="Endereço para entrega" required />
+        <select id="pagamento" onchange="mostrarTroco()" required>
+          <option value="" disabled selected>Forma de pagamento</option>
+          <option value="pix">PIX</option>
+          <option value="cartao">Cartão</option>
+          <option value="dinheiro">Dinheiro</option>
+        </select>
+        <div id="troco-container">
+          <input type="number" id="troco" placeholder="Troco para quanto?" min="0" step="0.01" />
+        </div>
+        <div class="form-buttons">
+          <button type="button" id="btn-whatsapp" onclick="enviarWhatsApp()">Enviar pedido pelo WhatsApp</button>
+        </div>
+      </form>
+    </aside>
+  </main>
+  <script>
+    const produtos = [
+      { id: 1, nome: "Salgado pippo's sabor bacon 75g", preco: 3.99, categoria: "Alimentos", imagem: "https://phygital-files.mercafacil.com/catalogo/uploads/produto/salgadinho_de_milho_bacon_pippo_s_vitaminado_pacote_75g_53465113-c6e4-4c19-bc4d-f0ce008785ae.png" },
+      { id: 2, nome: "Feijão Carioca urimataú 1kg", preco: 7.50, categoria: "Alimentos", imagem: "https://phygital-files.mercafacil.com/rosadosventos/uploads/produto/fava_curimatau_1kg_branca_e1a14ce0-2db7-4f24-8697-38c3b3335f3c.png" },
+      { id: 3, nome: "Coca cola 2L", preco: 10.49, categoria: "bebidas", imagem: "https://img.cdndsgni.com/preview/10001707.jpg" },
+      { id: 4, nome: "Fanta Uva 2L", preco: 8.49, categoria: "bebidas", imagem: "https://img.cdndsgni.com/preview/10001788.jpg" },
+      { id: 5, nome: "Tomate (KG)", preco: 7.50, categoria: "hortifruti", imagem: "https://acdn-us.mitiendanube.com/stores/002/296/660/products/tomate-png-1280x7201-36283e6b10aef947e616606979966621-1024-1024.png" },
+      { id: 6, nome: "Laranja Pera (KG)", preco: 7.50, categoria: "hortifruti", imagem: "https://img.freepik.com/psd-gratuitas/fatias-suculentas-de-laranja-frutas-citricas-frescas-folhas-verdes_84443-37185.jpg?semt=ais_items_boosted&w=740" },
+      { id: 7, nome: "Coxão mole de sol (KG)", preco: 7.50, categoria: "hortifruti", imagem: "https://savegnagoio.vtexassets.com/arquivos/ids/363361-800-450?v=638080736389870000&width=800&height=450&aspect=true" },
+      { id: 8, nome: "Bisteca de suína (KG)", preco: 7.50, categoria: "hortifruti", imagem: "https://img.cdndsgni.com/preview/11499788-m.jpg" },
+	];
+	  
+    let carrinho = {};
+
+    // Obter elementos
+    const produtosContainer = document.getElementById('produtos');
+    const categoriasContainer = document.getElementById('categorias');
+    const carrinhoContainer = document.getElementById('carrinho-container');
+    const itensCarrinhoContainer = document.getElementById('itens-carrinho');
+    const totalCarrinho = document.getElementById('total');
+    const limparCarrinhoBtn = document.getElementById('limpar-carrinho');
+    const botaoCarrinho = document.getElementById('botao-carrinho');
+    const badgeCarrinho = document.getElementById('badge-carrinho');
+    const fecharCarrinhoBtn = document.getElementById('fechar-carrinho');
+    const buscaInput = document.getElementById('busca');
+    const categoriasButtons = categoriasContainer;
+
+    // Formulário e campos
+    const formPedido = document.getElementById('form-pedido');
+    const pagamentoSelect = document.getElementById('pagamento');
+    const trocoContainer = document.getElementById('troco-container');
+
+    // Exibir categorias únicas
+    function mostrarCategorias() {
+      const categorias = [...new Set(produtos.map(p => p.categoria))];
+      categoriasContainer.innerHTML = '';
+      const btnTodas = document.createElement('button');
+      btnTodas.textContent = "Todas";
+      btnTodas.classList.add('active');
+      btnTodas.addEventListener('click', () => {
+        filtrarCategoria('Todas', btnTodas);
+      });
+      categoriasContainer.appendChild(btnTodas);
+      categorias.forEach(categoria => {
+        const btn = document.createElement('button');
+        btn.textContent = categoria;
+        btn.addEventListener('click', () => filtrarCategoria(categoria, btn));
+        categoriasContainer.appendChild(btn);
+      });
+    }
+
+    // Filtrar produtos por categoria
+    function filtrarCategoria(categoria, btnAtivo) {
+      Array.from(categoriasContainer.children).forEach(btn => btn.classList.remove('active'));
+      btnAtivo.classList.add('active');
+      mostrarProdutos(categoria === 'Todas' ? produtos : produtos.filter(p => p.categoria === categoria));
+    }
+
+    // Mostrar produtos na tela
+    function mostrarProdutos(listaProdutos) {
+      produtosContainer.innerHTML = '';
+      if (listaProdutos.length === 0) {
+        produtosContainer.textContent = "Nenhum produto encontrado.";
+        return;
+      }
+      listaProdutos.forEach(produto => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <img src="${produto.imagem}" alt="${produto.nome}" />
+          <h3>${produto.nome}</h3>
+          <p>R$ ${produto.preco.toFixed(2)}</p>
+          <input type="number" min="1" value="1" aria-label="Quantidade de ${produto.nome}" />
+          <button aria-label="Adicionar ${produto.nome} ao carrinho">Adicionar</button>
+        `;
+        const inputQtd = card.querySelector('input');
+        const btnAdicionar = card.querySelector('button');
+
+        btnAdicionar.addEventListener('click', () => {
+          const qtd = parseInt(inputQtd.value);
+          if (isNaN(qtd) || qtd < 1) {
+            alert("Quantidade inválida.");
+            return;
+          }
+          adicionarAoCarrinho(produto.id, qtd);
+        });
+        produtosContainer.appendChild(card);
+      });
+    }
+
+    // Adicionar produto ao carrinho
+    function adicionarAoCarrinho(id, quantidade) {
+      if (carrinho[id]) {
+        carrinho[id] += quantidade;
+      } else {
+        carrinho[id] = quantidade;
+      }
+      atualizarCarrinho();
+       // abrirCarrinho(); // Agora o carrinho só abre quando o botão é clicado
+    }
+
+    // Atualizar exibição do carrinho
+    function atualizarCarrinho() {
+      itensCarrinhoContainer.innerHTML = '';
+      const ids = Object.keys(carrinho);
+      if (ids.length === 0) {
+        itensCarrinhoContainer.textContent = "Seu carrinho está vazio.";
+        totalCarrinho.textContent = "Total: R$ 0.00";
+        badgeCarrinho.style.display = 'none';
+        formPedido.style.display = 'none';
+        return;
+      }
+      let total = 0;
+      let totalItens = 0;
+      ids.forEach(id => {
+        const produto = produtos.find(p => p.id == id);
+        const qtd = carrinho[id];
+        totalItens += qtd;
+        const subtotal = produto.preco * qtd;
+        total += subtotal;
+
+        const divItem = document.createElement('div');
+        divItem.className = 'item-carrinho';
+        divItem.innerHTML = `
+          <div><strong>${produto.nome}</strong></div>
+          <div class="item-quantidade" aria-label="Quantidade do produto ${produto.nome}">
+            <button aria-label="Diminuir quantidade" data-id="${id}" class="diminuir">−</button>
+            <span>${qtd}</span>
+            <button aria-label="Aumentar quantidade" data-id="${id}" class="aumentar">+</button>
+          </div>
+          <div>R$ ${subtotal.toFixed(2)}</div>
+          <button aria-label="Remover ${produto.nome} do carrinho" data-id="${id}" class="item-remover">×</button>
+        `;
+        itensCarrinhoContainer.appendChild(divItem);
+      });
+      totalCarrinho.textContent = `Total: R$ ${total.toFixed(2)}`;
+      badgeCarrinho.textContent = totalItens;
+      badgeCarrinho.style.display = 'inline-block';
+      formPedido.style.display = 'flex';
+    }
+
+    // Abrir carrinho
+    function abrirCarrinho() {
+      carrinhoContainer.style.display = 'flex';
+      carrinhoContainer.focus();
+    }
+
+    // Fechar carrinho
+    function fecharCarrinho() {
+      carrinhoContainer.style.display = 'none';
+    }
+
+    // Limpar carrinho
+    limparCarrinhoBtn.addEventListener('click', () => {
+      if (confirm('Deseja realmente limpar o carrinho?')) {
+        carrinho = {};
+        atualizarCarrinho();
+        fecharCarrinho();
+      }
+    });
+
+    // Eventos dos botões de abrir/fechar carrinho
+    botaoCarrinho.addEventListener('click', abrirCarrinho);
+    fecharCarrinhoBtn.addEventListener('click', fecharCarrinho);
+
+    // Eventos dos botões aumentar/diminuir quantidade e remover produto no carrinho (delegação)
+    itensCarrinhoContainer.addEventListener('click', (e) => {
+      const target = e.target;
+      const id = target.dataset.id;
+      if (target.classList.contains('aumentar')) {
+        carrinho[id]++;
+        atualizarCarrinho();
+      } else if (target.classList.contains('diminuir')) {
+        if (carrinho[id] > 1) {
+          carrinho[id]--;
+        } else {
+          if (confirm('Deseja remover o produto do carrinho?')) {
+            delete carrinho[id];
+          }
+        }
+        atualizarCarrinho();
+      } else if (target.classList.contains('item-remover')) {
+        if (confirm('Deseja remover o produto do carrinho?')) {
+          delete carrinho[id];
+          atualizarCarrinho();
+        }
+      }
+    });
+
+    // Busca de produtos
+    buscaInput.addEventListener('input', () => {
+      const termo = buscaInput.value.toLowerCase();
+      const filtrados = produtos.filter(p => p.nome.toLowerCase().includes(termo));
+      mostrarProdutos(filtrados);
+      // Resetar botão categoria
+      Array.from(categoriasContainer.children).forEach(btn => btn.classList.remove('active'));
+    });
+
+    // Mostrar campo troco se pagamento for dinheiro
+    function mostrarTroco() {
+      if (pagamentoSelect.value === 'dinheiro') {
+        trocoContainer.style.display = 'block';
+      } else {
+        trocoContainer.style.display = 'none';
+      }
+    }
+
+    // Enviar pedido pelo WhatsApp
+    function enviarWhatsApp() {
+      const nome = document.getElementById('nome').value.trim();
+      const endereco = document.getElementById('endereco').value.trim();
+      const pagamento = pagamentoSelect.value;
+      const troco = document.getElementById('troco').value;
+
+      if (!nome || !endereco || !pagamento) {
+        alert("Por favor, preencha todos os campos do formulário.");
+        return;
+      }
+
+      let mensagem = `*Pedido de Supermercado*\n\n*Nome:* ${nome}\n*📍Endereço:* ${endereco}\n*💳Pagamento:* ${pagamento}`;
+      if (pagamento === 'dinheiro' && troco) {
+        mensagem += `\n*🪙Troco para:* R$ ${parseFloat(troco).toFixed(2)}`;
+      }
+      mensagem += `\n\n*🛒Produtos:*`;
+      Object.entries(carrinho).forEach(([id, qtd]) => {
+        const produto = produtos.find(p => p.id == id);
+        mensagem += `\n- ${produto.nome} x${qtd} (R$ ${(produto.preco * qtd).toFixed(2)})`;
+      });
+      const total = Object.entries(carrinho).reduce((acc, [id, qtd]) => {
+        const p = produtos.find(prod => prod.id == id);
+        return acc + p.preco * qtd;
+      }, 0);
+      mensagem += `\n\n*Total:* R$ ${total.toFixed(2)}`;
+
+      const numeroWhats = "5584996220061"; // Troque pelo número correto
+      const url = `https://wa.me/${numeroWhats}?text=${encodeURIComponent(mensagem)}`;
+      window.open(url, '_blank');
+    }
+
+    // Inicialização
+    mostrarCategorias();
+    mostrarProdutos(produtos);
+    atualizarCarrinho();
+  </script>
+</body>
+</html>
+
+
