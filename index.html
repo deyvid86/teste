@@ -386,22 +386,44 @@ color: #FFFFFF; /* 👈 aqui você define a cor */
       <div id="itens-carrinho"></div>
       <div id="total">Total: R$ 0.00</div>
       <button id="limpar-carrinho">Limpar carrinho</button>
-      <form id="form-pedido" onsubmit="return false;">
-        <input type="text" id="nome" placeholder="Seu nome" required />
-        <input type="text" id="endereco" placeholder="Endereço para entrega" required />
-        <select id="pagamento" onchange="mostrarTroco()" required>
-          <option value="" disabled selected>Forma de pagamento</option>
-          <option value="pix">PIX</option>
-          <option value="cartao">Cartão</option>
-          <option value="dinheiro">Dinheiro</option>
-        </select>
-        <div id="troco-container">
-          <input type="number" id="troco" placeholder="Troco para quanto?" min="0" step="0.01" />
-        </div>
-        <div class="form-buttons">
-          <button type="button" id="btn-whatsapp" onclick="enviarWhatsApp()">Enviar pedido pelo WhatsApp</button>
-        </div>
-      </form>
+      <form id="form-pedido" onsubmit="return false">
+  <input type="text" id="nome" placeholder="Seu nome" required />
+
+  <select id="entrega" onchange="mostrarEntrega(this)" required>
+    <option value="">Selecione</option>
+    <option value="agendamento">Agendamento</option>
+    <option value="retirada">Retirada no balcão</option>
+    <option value="delivery">Delivery</option>
+  </select>
+
+  <div id="agendamento-container" style="display: none">
+    <input id="data-hora" type="datetime-local" required />
+  </div>
+
+  <div id="retirada-container" style="display: none">
+    <p>Seu pedido deve ser retirado no balcão.<br>Endereço: Rua Exemplo, 123</p>
+  </div>
+
+  <div id="delivery-container" style="display: none">
+    <input id="endereco" type="text" placeholder="Endereço para entrega" required />
+  </div>
+
+  <select id="pagamento" onchange="mostrarTroco()" required>
+    <option value="">Forma de pagamento</option>
+    <option value="pix">PIX</option>
+    <option value="cartao">Cartão</option>
+    <option value="dinheiro">Dinheiro</option>
+  </select>
+
+  <div id="troco-container" style="display: none">
+    <input type="number" id="troco" placeholder="Troco para quanto?" min="0" step="0.01" />
+  </div>
+
+  <div class="form-buttons">
+    <button type="button" id="btn-whatsapp" onclick="enviarWhatsApp()">Enviar pedido pelo WhatsApp</button>
+  </div>
+</form>
+
     </aside>
   </main>
   <script>
@@ -604,45 +626,83 @@ color: #FFFFFF; /* 👈 aqui você define a cor */
     });
 
     // Mostrar campo troco se pagamento for dinheiro
-    function mostrarTroco() {
-      if (pagamentoSelect.value === 'dinheiro') {
-        trocoContainer.style.display = 'block';
-      } else {
-        trocoContainer.style.display = 'none';
-      }
-    }
+    <script>
+function mostrarEntrega(el) {
+  document.getElementById('agendamento-container').style.display = el.value === 'agendamento' ? 'block' : 'none';
+  document.getElementById('retirada-container').style.display = el.value === 'retirada' ? 'block' : 'none';
+  document.getElementById('delivery-container').style.display = el.value === 'delivery' ? 'block' : 'none';
 
-    // Enviar pedido pelo WhatsApp
-    function enviarWhatsApp() {
-      const nome = document.getElementById('nome').value.trim();
-      const endereco = document.getElementById('endereco').value.trim();
-      const pagamento = pagamentoSelect.value;
-      const troco = document.getElementById('troco').value;
+  // Torna o input de delivery requerido apenas se delivery
+  document.getElementById('endereco').required = el.value === 'delivery';
+  // Torna o datetime required apenas se agendamento
+  document.getElementById('data-hora').required = el.value === 'agendamento';
+}
 
-      if (!nome || !endereco || !pagamento) {
-        alert("Por favor, preencha todos os campos do formulário.");
-        return;
-      }
+function mostrarTroco() {
+  const pagamento = document.getElementById('pagamento').value;
+  document.getElementById('troco-container').style.display = pagamento === 'dinheiro' ? 'block' : 'none';
+}
 
-      let mensagem = `*Pedido de Supermercado*\n\n*Nome:* ${nome}\n*📍Endereço:* ${endereco}\n*💳Pagamento:* ${pagamento}`;
-      if (pagamento === 'dinheiro' && troco) {
-        mensagem += `\n*🪙Troco para:* R$ ${parseFloat(troco).toFixed(2)}`;
-      }
-      mensagem += `\n\n*🛒Produtos:*`;
-      Object.entries(carrinho).forEach(([id, qtd]) => {
-        const produto = produtos.find(p => p.id == id);
-        mensagem += `\n- ${produto.nome} x${qtd} (R$ ${(produto.preco * qtd).toFixed(2)})`;
-      });
-      const total = Object.entries(carrinho).reduce((acc, [id, qtd]) => {
-        const p = produtos.find(prod => prod.id == id);
-        return acc + p.preco * qtd;
-      }, 0);
-      mensagem += `\n\n*Total:* R$ ${total.toFixed(2)}`;
+function enviarWhatsApp() {
+  const nome = document.getElementById('nome').value.trim();
+  const entrega = document.getElementById('entrega').value;
+  const endereco = document.getElementById('endereco')?.value.trim();
+  const dataHora = document.getElementById('data-hora')?.value;
+  const pagamento = document.getElementById('pagamento').value;
+  const troco = document.getElementById('troco')?.value;
 
-      const numeroWhats = "5584986725871"; // Troque pelo número correto
-      const url = `https://wa.me/${numeroWhats}?text=${encodeURIComponent(mensagem)}`;
-      window.open(url, '_blank');
-    }
+  if (!nome || !entrega || !pagamento) {
+    alert("Preencha todos os campos.");
+    return;
+  }
+  if (entrega === 'agendamento' && !dataHora) {
+    alert("Selecione a data e hora.");
+    return;
+  }
+  if (entrega === 'delivery' && !endereco) {
+    alert("Informe o endereço de entrega.");
+    return;
+  }
+  
+  let mensagem = `*Pedido de Supermercado*\n\n*Nome:* ${nome}`;
+
+  if (entrega === 'agendamento') {
+    mensagem += `\n*🕐 Agendamento para:* ${new Date(dataHora).toLocaleString('pt-BR')}`;
+
+  } else if (entrega === 'retirada') {
+    mensagem += `\n*🏪 Retirada no balcão* \nRua Exemplo, 123`;
+
+  } else if (entrega === 'delivery') {
+    mensagem += `\n*🚀 Delivery para:* ${endereco}`;
+
+  }
+  
+  mensagem += `\n*💳Pagamento:* ${pagamento}`;
+
+  if (pagamento === 'dinheiro' && troco) {
+    mensagem += `\n*🪙Troco para:* R$ ${parseFloat(troco).toFixed(2)}`;
+
+  }
+  mensagem += `\n\n*🛒Produtos:*`;
+  
+  Object.entries(carrinho).forEach(([id, qtd]) => {
+    const produto = produtos.find(p => p.id == id);
+    mensagem += `\n- ${produto.nome} x${qtd} (R$ ${(produto.preco * qtd).toFixed(2)})`;
+  });
+
+  const total = Object.entries(carrinho).reduce((acc, [id, qtd]) => {
+    const p = produtos.find(prod => prod.id == id);
+    return acc + p.preco * qtd;
+  }, 0);
+  
+  mensagem += `\n\n*Total:* R$ ${total.toFixed(2)}`;
+
+  const numeroWhats = "5584986725871";
+  const url = `https://wa.me/${numeroWhats}?text=${encodeURIComponent(mensagem)}`;
+
+  window.open(url, '_blank');
+}
+    
 
     // Inicialização
     mostrarCategorias();
